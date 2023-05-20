@@ -1,12 +1,17 @@
+set maxBatt to 80
+set minBatt to 40
+set critBatt to 20
+
 set Cap to (do shell script "ioreg -b -w 0 -f -r -c AppleSmartBattery | grep ExternalConnected")
 tell Cap to set {wallPower} to {last word of paragraph 1}
-if wallPower = "Yes" then
-	return 0
+
+set Pct to (do shell script "pmset -g batt | grep -Eo \"\\d+%\" | cut -d% -f1") as number
+if Pct ³ maxBatt and wallPower = "Yes" then
+	display notification "Battery level has reached " & Pct & "%" with title "Battery Charged" sound name "Hero"
+else if Pct > critBatt and Pct ² minBatt then
+	display notification "" & Pct & "% Battery Remaining, plug in soon." with title "Low Battery" sound name "Submarine"
+else if Pct ² critBatt then
+	display notification "" & Pct & "% Battery, plug in now." with title "Critical Battery" sound name "Ping"
 else
-	set Pct to (do shell script "pmset -g batt | grep -Eo \"\\d+%\" | cut -d% -f1") as number
-	if Pct > 10 and Pct 20 then
-		display notification "Less than 20% Battery Remaining, plug in soon." with title "Low Battery" sound name "Basso"
-	else if Pct 10 then
-		display notification "Less than 10% Battery, plug in now." with title "Critical Battery" sound name "Sosumi"
-	end if
+	return 0
 end if
